@@ -1,0 +1,50 @@
+{
+	"name": "lfphp/xlsxbuilder",
+	"description": "Microsoft Excel Extend file library.",
+	"keywords": [
+		"xlsx writer", "xlsx creator", "xlsx builder", "excel", "spread sheet"
+	],
+	"homepage": "http://blog.yikepi.com/",
+	"type": "library",
+	"license": "Apache-2.0",
+	"authors": [
+		{
+			"name": "Sasumi.H",
+			"email": "cnsasumi@outlook.com",
+			"homepage": "http://blog.yikepi.com/"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/sasumi/XLSXBuilder/issues"
+	},
+	"require": {
+		"php": ">=5.6",
+		"ext-json": "*",
+		"ext-zip": "*",
+		"lfphp/func": "^1.1",
+		"ext-mbstring": "*",
+		"aspera/xlsx-reader": "^0.10.1"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "8.5.8"
+	},
+	"suggested": {
+		"ext-openssl": "*"
+	},
+	"autoload": {
+		"psr-4": {
+			"LFPhp\\XLSXBuilder\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"LFPhp\\XLSXBuilder\\TestCase\\": "test"
+		}
+	},
+	"repositories": {
+		"packagist": {
+			"type": "composer",
+			"url": "https://mirrors.aliyun.com/composer/"
+		}
+	}
+}
