@@ -2,10 +2,7 @@
 namespace LFPhp\XLSXBuilder;
 use Exception;
 use ZipArchive;
-use function LFPhp\Func\file_lines;
-use function LFPhp\Func\format_size;
 use function LFPhp\Func\read_csv_chunk;
-use function LFPhp\Func\show_progress;
 use function LFPhp\Func\xml_special_chars;
 
 class XLSXBuilder {
@@ -73,14 +70,10 @@ class XLSXBuilder {
 		if($sheet_header){
 			$sheet->setHeader($sheet_header);
 		}
-		$total = file_lines($csv_file);
-		$index = 0;
-		read_csv_chunk(function($rows)use($sheet, &$index, $total){
+		read_csv_chunk(function($rows)use($sheet){
 			foreach($rows as $row){
 				$sheet->writeRow($row);
 			}
-			$index += count($rows);
-			show_progress($index, $total, format_size(memory_get_usage()));
 		}, $csv_file, [], 1000, $ignore_csv_head_lines);
 		$builder->saveAs($xlsx_filename);
 	}
