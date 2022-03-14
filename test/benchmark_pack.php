@@ -10,8 +10,9 @@ use function LFPhp\Func\show_progress;
 include "../vendor/autoload.php";
 dump(format_size(memory_get_usage()));
 
+XLSXBuilder::setTempDir(__DIR__.'/tmp');
+
 $writer = new XLSXBuilder();
-$writer->setTempDir(__DIR__.'/tmp');
 $sheet = $writer->createSheet('Sheet1');
 
 dump(format_size(memory_get_usage()));

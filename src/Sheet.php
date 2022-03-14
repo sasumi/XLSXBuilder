@@ -1,6 +1,7 @@
 <?php
 namespace LFPhp\XLSXBuilder;
 
+use LFPhp\Logger\LoggerTrait;
 use function LFPhp\Func\xml_special_chars;
 
 /**
@@ -10,6 +11,8 @@ use function LFPhp\Func\xml_special_chars;
  * http://office.microsoft.com/en-us/excel-help/excel-specifications-and-limits-HP010073849.aspx
  */
 class Sheet {
+	use LoggerTrait;
+
 	const EXCEL_2007_MAX_ROW = 1048576;
 	const EXCEL_2007_MAX_COL = 16384;
 	const DEFAULT_SHEET_NAME = 'Sheet1';
@@ -25,10 +28,10 @@ class Sheet {
 	public $merge_cells = [];
 	private $max_cell_tag_start;
 	private $max_cell_tag_end;
-	private $auto_filter = false; //是否开启全局单元格过滤
+	private $auto_filter; //是否开启全局单元格过滤
 	private $freeze_rows; //冻结开始行数
 	private $freeze_columns; //冻结开始列数
-	private $is_right_to_left_value = true; //数值靠右对齐
+	private $is_right_to_left_value; //数值靠右对齐
 
 	//文件写入器
 	private $file_writer;
@@ -108,6 +111,8 @@ class Sheet {
 	 * 最终写入文件
 	 */
 	public function finalize(){
+		self::getLogger()->info('Sheet finalize', $this->sheet_name);
+
 		$this->file_writer->write('</sheetData>');
 		if(!empty($this->merge_cells)){
 			$this->file_writer->write('<mergeCells>');
@@ -237,7 +242,6 @@ class Sheet {
 		$this->merge_cells[] = $startCell.":".$endCell;
 	}
 
-
 	/**
 	 * 写入工作表头部信息
 	 * @param array $header_types
@@ -263,6 +267,10 @@ class Sheet {
 		}
 	}
 
+	/**
+	 * 获取工作表缓存对应文件名
+	 * @return string
+	 */
 	public function getFileName(){
 		return $this->file_name;
 	}

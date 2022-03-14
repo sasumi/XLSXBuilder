@@ -1,18 +1,21 @@
 <?php
 namespace LFPhp\XLSXBuilder;
 use Exception;
+use LFPhp\Logger\LoggerTrait;
 use ZipArchive;
 use function LFPhp\Func\read_csv_chunk;
 use function LFPhp\Func\xml_special_chars;
 
 class XLSXBuilder {
+	use LoggerTrait;
+	protected static $temp_dir = null;
+
 	/** @var Meta $meta */
 	public $meta;
 
 	/** @var Sheet[] */
 	protected $sheets = [];
 	protected $temp_files = [];
-	protected $temp_dir = null;
 	protected $cell_styles = [];
 	protected $number_formats = [];
 
@@ -20,7 +23,6 @@ class XLSXBuilder {
 		defined('ENT_XML1') or define('ENT_XML1', 16);//for php 5.3, avoid fatal error
 		date_default_timezone_get() or date_default_timezone_set('UTC');//php.ini missing tz, avoid warning
 		$this->meta = $meta ?: new Meta();
-		$this->setTempDir();
 		$this->addCellStyle($number_format = 'GENERAL', $style_string = null);
 	}
 
@@ -29,7 +31,8 @@ class XLSXBuilder {
 	 */
 	public function __destruct(){
 		foreach($this->temp_files as $temp_file){
-			@unlink($temp_file);
+			self::getLogger()->info('unlink temporary file:', $temp_file);
+			//@unlink($temp_file);
 		}
 	}
 
@@ -39,11 +42,12 @@ class XLSXBuilder {
 	 * @throws \Exception
 	 */
 	public function createTempFile(){
-		$temp_dir = !empty($this->temp_dir) ? $this->temp_dir : sys_get_temp_dir();
+		$temp_dir = self::$temp_dir ?: sys_get_temp_dir();
 		$filename = tempnam($temp_dir, "xlsx_writer_");
 		if(!$filename){
 			throw new Exception("Unable to create temp file in $temp_dir");
 		}
+		self::getLogger()->info('create temporary file:', $temp_dir, $filename);
 		$this->temp_files[] = $filename;
 		return $filename;
 	}
@@ -100,14 +104,20 @@ class XLSXBuilder {
 		}
 		if(file_exists($filename)){
 			if(is_writable($filename)){
+				self::getLogger()->warning('unlink exists zip file:', $filename);
 				@unlink($filename); //if the zip already exists, remove it
 			}else{
 				throw new Exception("file is not writeable.");
 			}
 		}
+
+		self::getLogger()->info('start sheet finalize');
 		foreach($this->sheets as $sheet) {
 			$sheet->finalize();
 		}
+
+		self::getLogger()->info('start zip files', $filename);
+
 		$zip = new ZipArchive();
 		if(!$zip->open($filename, ZipArchive::CREATE)){
 			throw new Exception("unable to create zip.");
@@ -145,6 +155,7 @@ class XLSXBuilder {
 	 */
 	public function createSheet($sheet_name = Sheet::DEFAULT_SHEET_NAME, $col_widths = [], $auto_filter = false, $freeze_rows = false, $freeze_columns = false){
 		$sheet_xml_name = 'sheet' . (count($this->sheets) + 1).".xml";
+		self::getLogger()->info('creating sheet:', $sheet_name, $sheet_xml_name);
 		$sheet = new Sheet($this, $sheet_name, $col_widths, $auto_filter, $freeze_rows, $freeze_columns);
 		$sheet->xml_name = $sheet_xml_name;
 		$sheet->row_count = 0;
@@ -429,7 +440,7 @@ class XLSXBuilder {
 	 * @param string|null $temp_dir
 	 * @throws \Exception
 	 */
-	public function setTempDir($temp_dir = null){
+	public static function setTempDir($temp_dir = null){
 		if($temp_dir && !is_dir($temp_dir)){
 			mkdir($temp_dir, 0777, true);
 		}
@@ -437,7 +448,7 @@ class XLSXBuilder {
 		if(!is_writable($temp_dir)){
 			throw new Exception("Temporary directory is no writeable:$temp_dir");
 		}
-		$this->temp_dir = $temp_dir;
+		self::$temp_dir = $temp_dir;
 	}
 
 	/**

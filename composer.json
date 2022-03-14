@@ -22,7 +22,8 @@
 		"ext-json": "*",
 		"ext-zip": "*",
 		"lfphp/func": "*",
-		"ext-mbstring": "*"
+		"ext-mbstring": "*",
+		"lfphp/logger": "^1.0"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "8.5.8"
