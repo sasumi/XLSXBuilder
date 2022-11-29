@@ -24,3 +24,9 @@ foreach($data as $row){
 	$writer->getSheet('Sheet1')->writeRow($row);
 }
 $writer->saveAs('example.xlsx');
+
+XLSXBuilder::createFromArray('data.xlsx', [
+	['hello', 'world'],
+	['hello', 'world'],
+	['hello', 'world'],
+]);

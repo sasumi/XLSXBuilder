@@ -3,6 +3,7 @@ namespace LFPhp\XLSXBuilder;
 use Exception;
 use LFPhp\Logger\LoggerTrait;
 use ZipArchive;
+use function LFPhp\Func\array_first;
 use function LFPhp\Func\read_csv_chunk;
 use function LFPhp\Func\xml_special_chars;
 
@@ -32,7 +33,7 @@ class XLSXBuilder {
 	public function __destruct(){
 		foreach($this->temp_files as $temp_file){
 			self::getLogger()->info('unlink temporary file:', $temp_file);
-			//@unlink($temp_file);
+			@unlink($temp_file);
 		}
 	}
 
@@ -57,14 +58,14 @@ class XLSXBuilder {
 	 * @param string $csv_file CSV文件名称
 	 * @param string $xlsx_filename 保存的xlsx文件全名（包含路径）
 	 * @param array $sheet_header 工作表栏目信息，格式如下：
-		* $header = array(
-		* 'created'=>'date',
-		* 'product_id'=>'integer',
-		* 'quantity'=>'#,##0',
-		* 'amount'=>'price',
-		* 'description'=>'string',
-		* 'tax'=>'[$$-1009]#,##0.00;[RED]-[$$-1009]#,##0.00',
-		* );
+	 * $header = array(
+	 * 'created'=>'date',
+	 * 'product_id'=>'integer',
+	 * 'quantity'=>'#,##0',
+	 * 'amount'=>'price',
+	 * 'description'=>'string',
+	 * 'tax'=>'[$$-1009]#,##0.00;[RED]-[$$-1009]#,##0.00',
+	 * );
 	 * @param int $ignore_csv_head_lines 忽略CSV文件中的文件头部行数
 	 * @throws \Exception
 	 */
@@ -166,12 +167,53 @@ class XLSXBuilder {
 	}
 
 	/**
+	 * 快速通过关联数组新建xlsx文件
+	 * @param string $file_name 保存文件名
+	 * @param array $assoc_array 关联数组列表
+	 */
+	public static function createFromAssocArray($file_name, $assoc_array){
+		$xls = new self();
+		$sheet = $xls->createSheet();
+		if(!empty($assoc_array)){
+			$fields = array_keys(array_first($assoc_array));
+			$sheet->writeRow($fields);
+			foreach($assoc_array as $row){
+				$sheet->writeRow($row);
+			}
+		}
+		$xls->saveAs($file_name);
+	}
+
+	/**
+	 * 快速通过数组创建xlsx文件
+	 * @param string $file_name
+	 * @param array $array 数据
+	 * @param array $header_fields 指定头行
+	 */
+	public static function createFromArray($file_name, $array, $header_fields = []){
+		$xls = new self();
+		$sheet = $xls->createSheet();
+		if($header_fields){
+			$sheet->writeRow($header_fields);
+		}
+		foreach($array as $row){
+			$sheet->writeRow($row);
+		}
+		$xls->saveAs($file_name);
+	}
+
+	/**
 	 * 获取指定表名的工作表
 	 * @param $sheet_name
 	 * @return Sheet
 	 */
 	public function getSheet($sheet_name){
-		return $this->sheets[$sheet_name];
+		foreach($this->sheets as $sheet){
+			if($sheet->sheet_name == $sheet_name){
+				return $sheet;
+			}
+		}
+		return null;
 	}
 
 	/**
