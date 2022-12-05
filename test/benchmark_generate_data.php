@@ -33,5 +33,5 @@ if($buff){
 }
 fclose($fp);
 echo "DONE, ", date("H:i:s"),PHP_EOL;
-echo "total time:", pretty_time($start_time), "max memeroy size:", format_size($max_mem);
+echo "total time:", pretty_time($start_time), "max memory size:", format_size($max_mem);
 exit;
